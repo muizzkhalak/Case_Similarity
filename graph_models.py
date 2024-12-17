@@ -1,4 +1,4 @@
-from openhgnn.models import HeCo
+from HeCo import HeCo
 from pandas import concat
 import torch
 import torch.optim as optim
