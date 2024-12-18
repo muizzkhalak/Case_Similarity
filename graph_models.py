@@ -89,10 +89,10 @@ class HECO(EurLexCollection):
         self.cases = sorted(judgement_celex_numbers)
         self.cases = {cas : idx for idx,cas in enumerate(self.cases)}
 
-        self.legislations = sorted(list(set(case_leg_edges['target'].unique().tolist())) + 
-                            list(set(leg_leg_edges['source'].unique().tolist())) + 
-                            list(set(leg_leg_edges['target'].unique().tolist())) +
-                            list(set(leg_subject_edges['source'].unique().tolist())))
+        self.legislations = sorted(list(set((case_leg_edges['target'].unique().tolist()) + 
+                                            (leg_leg_edges['source'].unique().tolist()) + 
+                                            (leg_leg_edges['target'].unique().tolist()) +
+                                            (leg_subject_edges['source'].unique().tolist()))))
         self.legislations = {leg : idx for idx,leg in enumerate(self.legislations)}
 
         self.subjects = sorted(subject_matter_citations['target'].unique().tolist())
