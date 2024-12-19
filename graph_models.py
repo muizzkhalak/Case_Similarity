@@ -8,11 +8,13 @@ import random
 from gensim.models import Word2Vec
 from data_collection import EurLexCollection
 from sentence_bert import SentenceBERT
+import json
 
 
 class HECO(EurLexCollection):
 
-    def __init__(self,  
+    def __init__(self,
+                 feature_dir: str,
                  feature_model: str, 
                  feature_pooling: str,
                  meta_paths_dict: dict,
@@ -36,7 +38,7 @@ class HECO(EurLexCollection):
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.G = self.build_graph()
-        # self.feature_dict = self._get_entity_features(feature_model,feature_pooling)
+        self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
         self.meta_paths_dict = meta_paths_dict
         self.network_schema = network_schema
 
@@ -171,19 +173,28 @@ class HECO(EurLexCollection):
 
         return rev_dictionary[idx]
     
-    def _get_feature_embedding(self, feature_model, feature_type):
+    def _get_feature_embedding(self, feature_dir, feature_model, feature_type):
 
         if feature_type == 'case':
+            with open(feature_dir + 'cases_title.json', 'r') as file:
+                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_cases,i) for i in self.G.nodes('case').tolist()]
-            code_text = [self.get_title(code) for code in codes]
+            # code_text = [self.get_title(code) for code in codes]
+            code_text = [feature_texts[code] for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'legislation':
+            with open(feature_dir + 'legislation_title.json', 'r') as file:
+                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_legislations,i) for i in self.G.nodes('legislation').tolist()]
-            code_text = [self.get_title(code) for code in codes]
+            # code_text = [self.get_title(code) for code in codes]
+            code_text = [feature_texts[code] for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'subject_matter':
+            with open(feature_dir + 'subject_matter_mapping.json', 'r') as file:
+                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_subjects,i) for i in self.G.nodes('subject_matter').tolist()]
-            code_text = [self.get_subject_matter_text(code) for code in codes] 
+            # code_text = [self.get_subject_matter_text(code) for code in codes] 
+            code_text = [feature_texts[code] for code in codes]
             return feature_model.encode(code_text)
 
     def _get_entity_features(self,  feature_model: str,feature_pooling: str):
