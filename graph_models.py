@@ -197,13 +197,13 @@ class HECO(EurLexCollection):
             code_text = [feature_texts[code] for code in codes]
             return feature_model.encode(code_text)
 
-    def _get_entity_features(self,  feature_model: str,feature_pooling: str):
+    def _get_entity_features(self,  feature_dir: str, feature_model: str,feature_pooling: str):
 
         feature_model = SentenceBERT(feature_model,feature_pooling, device=self.device)
 
-        case_features = self._get_feature_embedding(feature_model,'case')
-        legis_features = self._get_feature_embedding(feature_model,'legislation')
-        subj_features = self._get_feature_embedding(feature_model,'subject_matter')
+        case_features = self._get_feature_embedding(feature_dir,feature_model,'case')
+        legis_features = self._get_feature_embedding(feature_dir,feature_model,'legislation')
+        subj_features = self._get_feature_embedding(feature_dir,feature_model,'subject_matter')
 
             
         h_dict = {
