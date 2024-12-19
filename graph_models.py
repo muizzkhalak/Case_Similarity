@@ -98,6 +98,9 @@ class HECO(EurLexCollection):
         self.subjects = sorted(subject_matter_citations['target'].unique().tolist())
         self.subjects = {sub : idx for idx,sub in enumerate(self.subjects)}
 
+        self.rev_cases = {idx:cas for cas, idx in self.cases.items()}
+        self.rev_legislations = {idx:leg for leg, idx in self.legislations.items()}
+        self.rev_subjects = {idx:sub for sub, idx in self.subjects.items()}
 
 
         case_case_edges['source'] = case_case_edges['source'].apply(lambda x: self.cases[x])
@@ -164,22 +167,22 @@ class HECO(EurLexCollection):
         return hg
     
     @staticmethod
-    def _key_from_value(dictionary: dict, idx: int) -> str:
+    def _key_from_value(rev_dictionary: dict, idx: int) -> str:
 
-        return list(dictionary.keys())[list(dictionary.values()).index(idx)]
+        return rev_dictionary[idx]
     
     def _get_feature_embedding(self, feature_model, feature_type):
 
         if feature_type == 'case':
-            codes = [self._key_from_value(self.cases,i) for i in self.G.nodes('case').tolist()]
+            codes = [self._key_from_value(self.rev_cases,i) for i in self.G.nodes('case').tolist()]
             code_text = [self.get_title(code) for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'legislation':
-            codes = [self._key_from_value(self.legislations,i) for i in self.G.nodes('legislation').tolist()]
+            codes = [self._key_from_value(self.rev_legislations,i) for i in self.G.nodes('legislation').tolist()]
             code_text = [self.get_title(code) for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'subject_matter':
-            codes = [self._key_from_value(self.subjects,i) for i in self.G.nodes('subject_matter').tolist()]
+            codes = [self._key_from_value(self.rev_subjects,i) for i in self.G.nodes('subject_matter').tolist()]
             code_text = [self.get_subject_matter_text(code) for code in codes] 
             return feature_model.encode(code_text)
 

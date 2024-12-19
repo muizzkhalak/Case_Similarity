@@ -240,7 +240,7 @@ class EurLexCollection:
         ret = sparql.queryAndConvert()
 
         # Extract subject matters from the results
-        results = [result['title']['value'][0] for result in ret['results']['bindings']]
+        results = [result['title']['value'] for result in ret['results']['bindings']][0]
         return results
 
     # Function to fetch the full text of a document using its CELEX number
