@@ -38,7 +38,7 @@ class HECO(EurLexCollection):
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.G = self.build_graph()
-        # self.feature_dict = self._get_esntity_features(feature_dir,feature_model,feature_pooling)
+        self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
         self.meta_paths_dict = meta_paths_dict
         self.network_schema = network_schema
 
