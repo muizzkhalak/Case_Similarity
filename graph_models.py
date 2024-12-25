@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class HECO(EurLexCollection, CasePreprocessing):
+class HECO(EurLexCollection):
 
     def __init__(self,
                  feature_dir: str,
