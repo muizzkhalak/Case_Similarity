@@ -8,10 +8,13 @@ import random
 from gensim.models import Word2Vec
 from data_collection import EurLexCollection
 from sentence_bert import SentenceBERT
+from preprocessing import CasePreprocessing
 import json
+import warnings
+warnings.filterwarnings('ignore')
 
 
-class HECO(EurLexCollection):
+class HECO(EurLexCollection, CasePreprocessing):
 
     def __init__(self,
                  feature_dir: str,
@@ -30,14 +33,28 @@ class HECO(EurLexCollection):
                  num_epochs: int = 10,
                  device: str = None):
 
-        super()
+        super().__init__()
 
         if device:
             self.device = device
         else:
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+        print('Loading Features')
+        with open(feature_dir + 'cases_titles.json', 'r') as file:
+            self.feature_cases = json.load(file)
+            self.feature_cases = {i : self._preprocessing(j) for i,j in self.feature_cases.items()}
+
+        with open(feature_dir + 'legislation_titles.json', 'r') as file:
+            self.feature_legislations = json.load(file)
+            self.feature_legislations = {i : self._preprocessing(j) for i,j in self.feature_legislations.items()}
+
+        with open(feature_dir + 'subject_matter_mapping.json', 'r') as file:
+            self.feature_subject_matters = json.load(file)
+
+        print('Building Graph')
         self.G = self.build_graph()
+        print('Creating Feature Projections')
         self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
         self.meta_paths_dict = meta_paths_dict
         self.network_schema = network_schema
@@ -150,19 +167,25 @@ class HECO(EurLexCollection):
         # Build the heterograph using canonical etypes
         hg = dgl.heterograph({
             # Case - Case
-            ('case', 'related_to_case', 'case'): (case_case_src, case_case_dst),
+            ('case', 'cites', 'case'): (case_case_src, case_case_dst),
             # Legislation - Legislation
-            ('legislation', 'refers_to_legislation', 'legislation'): (legis_legis_src, legis_legis_dst),
+            ('legislation', 'cites', 'legislation'): (legis_legis_src, legis_legis_dst),
             # Case - Legislation and reverse
             ('case', 'cites', 'legislation'): (case_legis_src, case_legis_dst),
             ('legislation', 'cited_by', 'case'): (legis_case_src, legis_case_dst),
             # Case - Subject matter and reverse
             ('case', 'has_subject', 'subject_matter'): (case_subj_src, case_subj_dst),
-            ('subject_matter', 'related_to_case', 'case'): (subj_case_src, subj_case_dst),
+            ('subject_matter', 'related_to', 'case'): (subj_case_src, subj_case_dst),
             # Legislation - Subject matter and reverse
-            ('legislation', 'pertains_to', 'subject_matter'): (legis_subj_src, legis_subj_dst),
-            ('subject_matter', 'rela ted_to_legislation', 'legislation'): (subj_legis_src, subj_legis_dst)
+            ('legislation', 'has_subject', 'subject_matter'): (legis_subj_src, legis_subj_dst),
+            ('subject_matter', 'related_to', 'legislation'): (subj_legis_src, subj_legis_dst)
             })
+        
+        # Remove legislations without any features
+        legislation_nodes_hg = [self._key_from_value(self.rev_legislations,i) for i in hg.nodes('legislation').tolist()]
+        available_feature_legilation = self.feature_legislations.keys()
+        missing_legislation_features = list(set(legislation_nodes_hg) - set(available_feature_legilation))
+        hg = dgl.remove_nodes(hg, torch.tensor(missing_legislation_features), ntype='legislation')
 
         hg = hg.to(self.device)
 
@@ -176,25 +199,19 @@ class HECO(EurLexCollection):
     def _get_feature_embedding(self, feature_dir, feature_model, feature_type):
 
         if feature_type == 'case':
-            with open(feature_dir + 'cases_title.json', 'r') as file:
-                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_cases,i) for i in self.G.nodes('case').tolist()]
             # code_text = [self.get_title(code) for code in codes]
-            code_text = [feature_texts[code] for code in codes]
+            code_text = [self.feature_cases[code] for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'legislation':
-            with open(feature_dir + 'legislation_title.json', 'r') as file:
-                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_legislations,i) for i in self.G.nodes('legislation').tolist()]
             # code_text = [self.get_title(code) for code in codes]
-            code_text = [feature_texts[code] for code in codes]
+            code_text = [self.feature_legislations[code] for code in codes]
             return feature_model.encode(code_text)
         elif feature_type == 'subject_matter':
-            with open(feature_dir + 'subject_matter_mapping.json', 'r') as file:
-                feature_texts = json.load(file)
             codes = [self._key_from_value(self.rev_subjects,i) for i in self.G.nodes('subject_matter').tolist()]
             # code_text = [self.get_subject_matter_text(code) for code in codes] 
-            code_text = [feature_texts[code] for code in codes]
+            code_text = [self.feature_subject_matters[code] for code in codes]
             return feature_model.encode(code_text)
 
     def _get_entity_features(self,  feature_dir: str, feature_model: str,feature_pooling: str):
