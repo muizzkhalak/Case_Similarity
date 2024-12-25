@@ -6,7 +6,6 @@ import dgl
 import networkx as nx
 import random
 from gensim.models import Word2Vec
-from data_collection import EurLexCollection
 from sentence_bert import SentenceBERT
 from preprocessing import CasePreprocessing
 import json
@@ -14,7 +13,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-class HECO(EurLexCollection):
+class HECO(CasePreprocessing):
 
     def __init__(self,
                  feature_dir: str,
@@ -33,7 +32,7 @@ class HECO(EurLexCollection):
                  num_epochs: int = 10,
                  device: str = None):
 
-        super().__init__()
+        super()
 
         if device:
             self.device = device
