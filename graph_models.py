@@ -184,6 +184,7 @@ class HECO(CasePreprocessing):
         legislation_nodes_hg = [self._key_from_value(self.rev_legislations,i) for i in hg.nodes('legislation').tolist()]
         available_feature_legilation = self.feature_legislations.keys()
         missing_legislation_features = list(set(legislation_nodes_hg) - set(available_feature_legilation))
+        missing_legislation_features = [self.legislations[leg] for leg in missing_legislation_features]
         hg = dgl.remove_nodes(hg, torch.tensor(missing_legislation_features), ntype='legislation')
 
         hg = hg.to(self.device)
