@@ -267,7 +267,7 @@ class HECO(CasePreprocessing):
     
 
 
-class MetaPath2Vec(EurLexCollection):
+class MetaPath2Vec(CasePreprocessing):
 
     def __init__(self, 
                  metapaths, 
