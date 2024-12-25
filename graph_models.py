@@ -218,8 +218,11 @@ class HECO(EurLexCollection, CasePreprocessing):
 
         feature_model = SentenceBERT(feature_model,feature_pooling, device=self.device)
 
+        print('Generating Case Features')
         case_features = self._get_feature_embedding(feature_dir,feature_model,'case')
+        print('Generating Legislation Features')
         legis_features = self._get_feature_embedding(feature_dir,feature_model,'legislation')
+        print('Generating Subject Matter Features')
         subj_features = self._get_feature_embedding(feature_dir,feature_model,'subject_matter')
 
             
