@@ -195,7 +195,7 @@ class HECO(CasePreprocessing):
         available_feature_case = list(self.feature_cases.keys())
         missing_case_features = list(set(case_nodes_hg) - set(available_feature_case))
         missing_case_features = [self.cases[cas] for cas in missing_case_features]
-        print(len(missing_case_features))
+        print(missing_case_features)
         print(hg.num_nodes('case'))
         hg = dgl.remove_nodes(hg, torch.tensor(missing_case_features), ntype='case')
         print(hg.num_nodes('case'))
