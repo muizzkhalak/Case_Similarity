@@ -185,6 +185,7 @@ class HECO(CasePreprocessing):
         available_feature_legislation = list(self.feature_legislations.keys())
         missing_legislation_features = list(set(legislation_nodes_hg) - set(available_feature_legislation))
         missing_legislation_features = [self.legislations[leg] for leg in missing_legislation_features]
+        print(len(missing_legislation_features))
         print(hg.num_nodes('legislation'))
         hg = dgl.remove_nodes(hg, torch.tensor(missing_legislation_features), ntype='legislation')
         print(hg.num_nodes('legislation'))
@@ -194,6 +195,7 @@ class HECO(CasePreprocessing):
         available_feature_case = list(self.feature_cases.keys())
         missing_case_features = list(set(case_nodes_hg) - set(available_feature_case))
         missing_case_features = [self.cases[cas] for cas in missing_case_features]
+        print(len(missing_case_features))
         print(hg.num_nodes('case'))
         hg = dgl.remove_nodes(hg, torch.tensor(missing_case_features), ntype='case')
         print(hg.num_nodes('case'))
