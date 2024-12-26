@@ -54,7 +54,7 @@ class HECO(CasePreprocessing):
         print('Building Graph')
         self.G = self.build_graph()
         print('Creating Feature Projections')
-        # self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
+        self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
         self.meta_paths_dict = meta_paths_dict
         self.network_schema = network_schema
 
