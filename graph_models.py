@@ -54,7 +54,7 @@ class HECO(CasePreprocessing):
         print('Building Graph')
         self.G = self.build_graph()
         print('Creating Feature Projections')
-        # self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
+        self.feature_dict = self._get_entity_features(feature_dir,feature_model,feature_pooling)
         self.meta_paths_dict = meta_paths_dict
         self.network_schema = network_schema
 
@@ -191,7 +191,7 @@ class HECO(CasePreprocessing):
         case_nodes_hg = [self._key_from_value(self.rev_cases,i) for i in hg.nodes('case').tolist()]
         available_feature_case = list(self.feature_cases.keys())
         missing_case_features = list(set(case_nodes_hg) - set(available_feature_case))
-        missing_case_features = [self.cases[case] for case in missing_case_features]
+        missing_case_features = [self.cases[cas] for cas in missing_case_features]
         hg = dgl.remove_nodes(hg, torch.tensor(missing_case_features), ntype='case')
 
         hg = hg.to(self.device)
