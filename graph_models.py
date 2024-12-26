@@ -84,18 +84,20 @@ class HECO(CasePreprocessing):
 
 
         case_case_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('6')) & (cross_reference_citations['target'].str.startswith('6'))]
-        case_case_edges = case_case_edges[(case_case_edges['source'].isin(judgement_celex_numbers)) & (case_case_edges['target'].isin(judgement_celex_numbers))]
+        case_case_edges = case_case_edges[(case_case_edges['source'].isin(list(self.feature_cases.keys()))) & (case_case_edges['target'].isin(list(self.feature_cases.keys())))]
 
         case_leg_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('6')) & (cross_reference_citations['target'].str.startswith('3') | cross_reference_citations['target'].str.startswith('1'))]
-        case_leg_edges = case_leg_edges[case_leg_edges['source'].isin(judgement_celex_numbers)]
+        case_leg_edges = case_leg_edges[case_leg_edges['source'].isin(list(self.feature_cases.keys()))]
+        case_leg_edges = case_leg_edges[case_leg_edges['target'].isin(list(self.feature_legislations.keys()))]
 
         case_subject_edges = subject_matter_citations[subject_matter_citations['source'].str.startswith('6')]
-        case_subject_edges = case_subject_edges[case_subject_edges['source'].isin(judgement_celex_numbers)]
+        case_subject_edges = case_subject_edges[case_subject_edges['source'].isin(list(self.feature_cases.keys()))]
 
         leg_leg_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('3') | cross_reference_citations['source'].str.startswith('1')) & (cross_reference_citations['target'].str.startswith('3') | cross_reference_citations['target'].str.startswith('1'))]
+        leg_leg_edges = leg_leg_edges[(leg_leg_edges['source'].isin(list(self.feature_legislations.keys()))) & (leg_leg_edges['target'].isin(list(self.feature_legislations.keys())))]
 
         leg_subject_edges = subject_matter_citations[(subject_matter_citations['source'].str.startswith('3')) | (subject_matter_citations['source'].str.startswith('1'))]
-
+        leg_subject_edges = leg_subject_edges[leg_subject_edges['source'].isin(list(self.feature_legislations.keys()))]
 
         case_case_edges.drop_duplicates(inplace = True)
         case_leg_edges.drop_duplicates(inplace = True)
@@ -104,7 +106,11 @@ class HECO(CasePreprocessing):
         leg_subject_edges.drop_duplicates(inplace = True) 
 
 
-        self.cases = sorted(judgement_celex_numbers)
+        # self.cases = sorted(judgement_celex_numbers)
+        self.cases = sorted(list(set((case_leg_edges['source'].unique().tolist()) + 
+                                    (case_case_edges['source'].unique().tolist()) + 
+                                    (case_case_edges['target'].unique().tolist()) +
+                                    (case_subject_edges['source'].unique().tolist()))))
         self.cases = {cas : idx for idx,cas in enumerate(self.cases)}
 
         self.legislations = sorted(list(set((case_leg_edges['target'].unique().tolist()) + 
@@ -181,24 +187,24 @@ class HECO(CasePreprocessing):
             })
         
         # Remove legislations without any features
-        legislation_nodes_hg = [self._key_from_value(self.rev_legislations,i) for i in hg.nodes('legislation').tolist()]
-        available_feature_legislation = list(self.feature_legislations.keys())
-        missing_legislation_features = list(set(legislation_nodes_hg) - set(available_feature_legislation))
-        missing_legislation_features = [self.legislations[leg] for leg in missing_legislation_features]
-        print(len(missing_legislation_features))
-        print(hg.num_nodes('legislation'))
-        hg = dgl.remove_nodes(hg, torch.tensor(missing_legislation_features), ntype='legislation')
-        print(hg.num_nodes('legislation'))
+        # legislation_nodes_hg = [self._key_from_value(self.rev_legislations,i) for i in hg.nodes('legislation').tolist()]
+        # available_feature_legislation = list(self.feature_legislations.keys())
+        # missing_legislation_features = list(set(legislation_nodes_hg) - set(available_feature_legislation))
+        # missing_legislation_features = [self.legislations[leg] for leg in missing_legislation_features]
+        # print(len(missing_legislation_features))
+        # print(hg.num_nodes('legislation'))
+        # hg = dgl.remove_nodes(hg, torch.tensor(missing_legislation_features), ntype='legislation')
+        # print(hg.num_nodes('legislation'))
 
-        # Remove cases without any features
-        case_nodes_hg = [self._key_from_value(self.rev_cases,i) for i in hg.nodes('case').tolist()]
-        available_feature_case = list(self.feature_cases.keys())
-        missing_case_features = list(set(case_nodes_hg) - set(available_feature_case))
-        missing_case_features = [self.cases[cas] for cas in missing_case_features]
-        print(missing_case_features)
-        print(hg.num_nodes('case'))
-        hg = dgl.remove_nodes(hg, torch.tensor(missing_case_features), ntype='case')
-        print(hg.num_nodes('case'))
+        # # Remove cases without any features
+        # case_nodes_hg = [self._key_from_value(self.rev_cases,i) for i in hg.nodes('case').tolist()]
+        # available_feature_case = list(self.feature_cases.keys())
+        # missing_case_features = list(set(case_nodes_hg) - set(available_feature_case))
+        # missing_case_features = [self.cases[cas] for cas in missing_case_features]
+        # print(missing_case_features)
+        # print(hg.num_nodes('case'))
+        # hg = dgl.remove_nodes(hg, torch.tensor(missing_case_features), ntype='case')
+        # print(hg.num_nodes('case'))
 
         hg = hg.to(self.device)
 
