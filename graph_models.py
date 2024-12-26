@@ -246,9 +246,9 @@ class HECO(CasePreprocessing):
 
             
         h_dict = {
-            'cases' : torch.Tensor(case_features, device=self.device),
-            'legislation' : torch.Tensor(legis_features, device=self.device),
-            'subject_matter' : torch.Tensor(subj_features, device=self.device)
+            'cases' : torch.tensor(case_features, device=self.device),
+            'legislation' : torch.tensor(legis_features, device=self.device),
+            'subject_matter' : torch.tensor(subj_features, device=self.device)
         }
 
         return h_dict
