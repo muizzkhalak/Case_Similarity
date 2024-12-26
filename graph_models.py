@@ -259,7 +259,7 @@ class HECO(CasePreprocessing):
                         meta_paths_dict=self.meta_paths_dict,
                         network_schema=self.network_schema,
                         category=self.category,
-                        hidden_size=self.feature_dict.values()[0].shape[1],
+                        hidden_size=list(self.feature_dict.values())[0].shape[1],
                         feat_drop=self.feat_drop,
                         attn_drop=self.attn_drop,
                         sample_rate=self.sample_rate,
