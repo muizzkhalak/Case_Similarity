@@ -353,8 +353,6 @@ class Contrast(nn.Module):
         matrix_sc2mp = matrix_mp2sc.t()
 
         matrix_mp2sc = matrix_mp2sc / (torch.sum(matrix_mp2sc, dim=1).view(-1, 1) + 1e-8)
-        print(matrix_mp2sc)
-        print(pos)
         lori_mp = -torch.log(matrix_mp2sc.mul(pos.to_dense()).sum(dim=-1)).mean()
 
         matrix_sc2mp = matrix_sc2mp / (torch.sum(matrix_sc2mp, dim=1).view(-1, 1) + 1e-8)

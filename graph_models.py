@@ -272,7 +272,7 @@ class HECO(CasePreprocessing):
         self.model.train()
         for epoch in range(self.num_epochs):
             optimizer.zero_grad()
-            loss = self.model(self.G, self.feature_dict, self.pos)
+            loss = self.model(self.G, self.feature_dict, self.pos.to(self.device))
             loss.backward()
             optimizer.step()
             print(f"Epoch {epoch}: Loss {loss.item():.4f}")
