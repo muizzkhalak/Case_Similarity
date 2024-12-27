@@ -1,0 +1,14 @@
+torch==2.2.1
+langchain-huggingface==0.0.1
+sentence-transformers==2.4.0
+dgl -f https://data.dgl.ai/wheels/repo.html
+pandas
+numpy
+torchdata==0.7.1
+SPARQLWrapper
+faiss-cpu
+tqdm
+bs4
+networkx
+tf-keras
+transformers==4.38.1
