@@ -211,6 +211,7 @@ class CasePreprocessing(EurLexCollection):
             print('passed')
         else:
             text = self.get_full_text(source_celex=source_celex)
+            print('not passed')
 
         if isinstance(text, bytes):
             text = text.decode('utf-8')
