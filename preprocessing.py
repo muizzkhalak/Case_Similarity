@@ -211,13 +211,16 @@ class CasePreprocessing(EurLexCollection):
         else:
             text = self.get_full_text(source_celex=source_celex)
 
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
+
         # Check if the text contains an error message
-        if 'None of the requests returned' in text.decode('utf-8'):
+        if 'None of the requests returned' in text:
             return None
         # Detect the HTML structure type and extract content accordingly
-        if 'C01PointnumeroteAltN' in text.decode('utf-8'): # Type 2 structure
+        if 'C01PointnumeroteAltN' in text: # Type 2 structure
             content = self._html_extractor_type_2(text)
-        elif ('class="coj-sum-title-1"' in text.decode('utf-8')) or ('class="sum-title-1"' in text.decode('utf-8')): # Type 1 structure
+        elif ('class="coj-sum-title-1"' in text) or ('class="sum-title-1"' in text): # Type 1 structure
             content = self._html_extractor_type_1(text)
         else:
             # Return None if the HTML structure is unrecognized
