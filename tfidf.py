@@ -7,6 +7,7 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 import string
+from tqdm import tqdm
 
 class TFIDF():
 
@@ -41,7 +42,9 @@ class TFIDF():
 
     def encode(self, texts):
 
-        texts = [self._additonal_tfidf_preprocessing(text) for text in texts]
+        print('Preprocessing')
+        texts = [self._additonal_tfidf_preprocessing(text) for text in tqdm(texts)]
+        print('Training')
         embeddings = self.vectorizer.fit_transform(texts)
 
         return embeddings
