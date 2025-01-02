@@ -6,9 +6,11 @@ import dgl
 import networkx as nx
 import random
 from gensim.models import Word2Vec
+from gensim.models.callbacks import Callback
 from sentence_bert import SentenceBERT
 from preprocessing import CasePreprocessing
 import json
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -414,16 +416,50 @@ class MetaPath2Vec(CasePreprocessing):
     
     def train(self):
 
+        progress_callback = TQDMProgressBar(total_walks=len(self.walks), epochs=self.epochs)
+
         self.model = Word2Vec(sentences=self.walks, 
                               vector_size=self.vector_size, 
                               window=self.window, 
                               min_count=self.min_count, 
                               sg=self.sg, 
                               workers=self.workers, 
-                              epochs=self.epochs)
+                              epochs=self.epochs,
+                              callbacks=[progress_callback])
         
     def get_embeddings(self):
 
         all_celex_judgement = self.get_case_law_judgement_celex(year=None, celex_limit=None, preliminary_ruling=True)
         embeddings = {node: self.model.wv[node] for node in self.G.nodes() if node in all_celex_judgement}
         return embeddings
+
+
+class TQDMProgressBar(Callback):
+    """
+    Callback for tracking the progress of Word2Vec training using tqdm.
+    """
+    def __init__(self, total_walks, epochs):
+        self.epochs = epochs
+        self.total_walks = total_walks
+        self.epoch_progress = tqdm(total=self.total_walks, desc="Training progress", position=0, leave=True)
+        self.epoch_count = 0
+
+    def on_epoch_begin(self, model):
+        """
+        This method is called at the beginning of each epoch.
+        """
+        self.epoch_count += 1
+        self.epoch_progress.set_description(f"Epoch {self.epoch_count}/{self.epochs}")
+        self.epoch_progress.reset(total=self.total_walks)
+
+    def on_epoch_end(self, model):
+        """
+        This method is called at the end of each epoch.
+        """
+        self.epoch_progress.update(self.total_walks)
+
+    def on_batch_end(self, model, raw_word_count, raw_word_vectors, num_words):
+        """
+        This method is called at the end of each batch.
+        """
+        self.epoch_progress.update(num_words)
