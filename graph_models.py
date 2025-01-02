@@ -444,6 +444,10 @@ class TQDMProgressBar(Callback):
         self.epoch_progress = tqdm(total=self.total_walks, desc="Training progress", position=0, leave=True)
         self.epoch_count = 0
 
+    def on_train_begin(self, model):
+
+        print('Training Begin')
+
     def on_epoch_begin(self, model):
         """
         This method is called at the beginning of each epoch.
@@ -463,3 +467,7 @@ class TQDMProgressBar(Callback):
         This method is called at the end of each batch.
         """
         self.epoch_progress.update(num_words)
+
+    def on_train_end(self, model):
+
+        print('Training End')
