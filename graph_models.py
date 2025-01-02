@@ -293,6 +293,7 @@ class MetaPath2Vec(CasePreprocessing):
         self.G = self.build_graph()
 
         self.neighbors_by_type = self._organize_neignbors()
+        self._generate_walks()
 
 
     def build_graph(self):
