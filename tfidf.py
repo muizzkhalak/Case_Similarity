@@ -44,9 +44,25 @@ class TFIDF():
 
     def encode(self, texts):
 
+        if isinstance(texts, str):
+            texts = [texts]
+
         print('Preprocessing')
         texts = [self._additonal_tfidf_preprocessing(text) for text in tqdm(texts)]
         print('Training')
         embeddings = self.vectorizer.fit_transform(texts)
 
         return embeddings
+    
+    def embed(self, texts):
+
+        if isinstance(texts, str):
+            texts = [texts]
+
+        print('Preprocessing')
+        texts = [self._additonal_tfidf_preprocessing(text) for text in tqdm(texts)]
+        print('Transforming')
+        embeddings = self.vectorizer.transform(texts)
+
+        return embeddings
+        
