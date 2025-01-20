@@ -1,5 +1,6 @@
 import faiss
 import torch
+from collections import defaultdict
 
 class ApproxNN:
 
@@ -35,3 +36,39 @@ class ApproxNN:
 
         results = [list(self.mapping_dict.keys())[list(self.mapping_dict.values()).index(idx)] for idx in indices[0][1:]]
         return results
+
+
+def weighted_reciprocal_rank_fusion(
+    ranked_lists: List[List[Any]],
+    weights: List[float],
+    k: int = 60
+) -> List[Any]:
+    """
+    Perform Weighted Reciprocal Rank Fusion on multiple ranked lists.
+
+    Args:
+        ranked_lists (List[List[Any]]): A list of ranked lists, where each ranked list is a list of document identifiers.
+        weights (List[float]): A list of weights corresponding to each ranked list.
+        k (int, optional): The constant k used in the RRF formula. Defaults to 60.
+
+    Returns:
+        List[Any]: A single fused ranked list of document identifiers.
+    """
+    if len(ranked_lists) != len(weights):
+        raise ValueError("The number of ranked lists must match the number of weights.")
+
+    # Initialize a dictionary to hold the scores for each document
+    scores = defaultdict(float)
+
+    for idx, (ranked_list, weight) in enumerate(zip(ranked_lists, weights)):
+        # print(f"Processing ranker {idx + 1} with weight {weight}")
+        for rank, doc in enumerate(ranked_list, start=1):
+            contribution = weight / (k + rank)
+            scores[doc] += contribution
+            # print(f"  Document: {doc}, Rank: {rank}, Contribution: {contribution:.6f}, Total Score: {scores[doc]:.6f}")
+
+    # Sort the documents based on their total scores in descending order
+    fused_ranking = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+
+    # Extract and return the document identifiers from the sorted list
+    return [doc for doc, score in fused_ranking]
