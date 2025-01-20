@@ -1,10 +1,13 @@
 import faiss
 import torch
+from typing import List, Dict, Any
 from collections import defaultdict
 
 class ApproxNN:
 
-    def __init__(self, embeddings, mapping_dict):
+    def __init__(self, 
+                 embeddings, 
+                 mapping_dict):
 
         if isinstance(embeddings, torch.Tensor):
             embeddings = embeddings.cpu().numpy()
