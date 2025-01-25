@@ -192,7 +192,8 @@ class CasePreprocessing(EurLexCollection):
     def get_preprocessed_case(self, 
                         source_celex: str, 
                         result: Literal['paragraph', 'article'],
-                        text: Optional[bytes] = None) -> Union[pd.DataFrame, str]:
+                        text: Optional[bytes] = None,
+                        process: Optional[bool] = True) -> Union[pd.DataFrame, str]:
         
         '''
         Retrieve and preprocess a case document, returning structured paragraphs or full text.
@@ -227,7 +228,10 @@ class CasePreprocessing(EurLexCollection):
             return None
 
         # Apply preprocessing to the extracted text content
-        content['Text'] = content['Text'].apply(self._preprocessing)
+        if process:
+            content['Text'] = content['Text'].apply(self._preprocessing)
+        else:
+            pass
 
         # Handle paragraph numbers (cleaning, forward-filling, and conversion to integer)
         content['ParaNum'] = np.where((content['ParaNum'].isna()) | ((content['ParaNum'] == '')), np.nan, content['ParaNum'])
