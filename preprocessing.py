@@ -193,7 +193,8 @@ class CasePreprocessing(EurLexCollection):
                         source_celex: str, 
                         result: Literal['paragraph', 'article'],
                         text: Optional[bytes] = None,
-                        process: Optional[bool] = True) -> Union[pd.DataFrame, str]:
+                        process: Optional[bool] = True,
+                        operative_only: Optional[bool] = False) -> Union[pd.DataFrame, str]:
         
         '''
         Retrieve and preprocess a case document, returning structured paragraphs or full text.
@@ -248,6 +249,11 @@ class CasePreprocessing(EurLexCollection):
                     final[str(para) + '_' + str(i+1) + '_' + source_celex] = para_df.iloc[i]['Text']
             else:
                 final[str(para) + '_' + source_celex] = para_df.iloc[0]['Text']
+
+        if operative_only==True:
+            final = {k: v for k, v in final.items() if len(k.split('_')) == 3}
+        else:
+            pass
 
         # Return the output based on the specified result format
         if result=='paragraph':
