@@ -286,7 +286,7 @@ class MetaPath2Vec(CasePreprocessing):
                  epochs=10):
 
         super()
-        
+
         self.feature_dir = feature_dir
         self.metapaths = metapaths
         self.number_of_walks = number_of_walks
@@ -336,7 +336,7 @@ class MetaPath2Vec(CasePreprocessing):
             doc_to_para[para.split('_')[-1]].append(para)
 
         para_to_para = []
-        for doc, paras in tqdm(doc_to_para.items()):
+        for doc, paras in doc_to_para.items():
             case_cits = case_case_edges[case_case_edges['source'] == doc]
             for cas in case_cits['target']:
                 if cas in doc_to_para.keys():
@@ -349,7 +349,7 @@ class MetaPath2Vec(CasePreprocessing):
 
         para_to_leg = []
 
-        for doc, paras in tqdm(doc_to_para.items()):
+        for doc, paras in doc_to_para.items():
             case_cits = case_leg_edges[case_leg_edges['source'] == doc]
             for leg in case_cits['target']:
                 for para in paras:
@@ -513,7 +513,7 @@ class MetaPath2Vec(CasePreprocessing):
         self.walks = []
         num_walks = self.number_of_walks  # Number of walks per starting node
 
-        for metapath in self.metapaths:
+        for metapath in tqdm(self.metapaths):
             start_nodes = [node for node, data in self.G.nodes(data=True) if data['type'] == metapath[0]]
             for start_node in start_nodes:
                 for _ in range(num_walks):
