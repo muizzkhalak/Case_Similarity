@@ -320,6 +320,8 @@ class MetaPath2Vec(CasePreprocessing):
 
         judgement_citations = self.get_citation_by_doc_type('6')
         legislation_citations = pd.concat([self.get_citation_by_doc_type('3')])
+        missing = pd.DataFrame(([('62023CJ0118', '32013R0575'), ('62023CJ0118','32014L0049'), ('62023CJ0118','32014L0059')]), columns = ['source', 'target'])
+        judgement_citations = pd.concat([judgement_citations, missing])
         cross_reference_citations = pd.concat([judgement_citations, legislation_citations])
 
         case_case_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('6')) & (cross_reference_citations['target'].str.startswith('6'))]
@@ -411,7 +413,9 @@ class MetaPath2Vec(CasePreprocessing):
 
         judgement_citations = self.get_citation_by_doc_type('6')
         legislation_citations = concat([self.get_citation_by_doc_type('3'), self.get_citation_by_doc_type('1')])
-        
+        missing = pd.DataFrame(([('62023CJ0118', '32013R0575'), ('62023CJ0118','32014L0049'), ('62023CJ0118','32014L0059')]), columns = ['source', 'target'])
+        judgement_citations = pd.concat([judgement_citations, missing])
+
         cross_reference_citations = concat([judgement_citations, legislation_citations])
         subject_matter_citations = concat([self.get_subject_matter_by_doc_type('1'), self.get_subject_matter_by_doc_type('3'), self.get_subject_matter_by_doc_type('6')])
 
