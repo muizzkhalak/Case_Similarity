@@ -10,8 +10,11 @@ from gensim.models.callbacks import Callback
 from sentence_bert import SentenceBERT
 from preprocessing import CasePreprocessing
 import json
+import ast
+import pandas as pd
 from tqdm import tqdm
 import warnings
+from collections import defaultdict
 warnings.filterwarnings('ignore')
 
 
@@ -292,12 +295,113 @@ class MetaPath2Vec(CasePreprocessing):
         self.workers = workers
         self.epochs = epochs
 
-        self.G = self.build_graph()
+        if 'paragraph' in list(set([node for metapath in metapaths for node in metapath])):
+            self.G = self.build_graph_paragraph()
+        else:
+            self.G = self.build_graph()
 
         self.neighbors_by_type = self._organize_neignbors()
         self._generate_walks()
 
 
+    def build_graph_paragraph(self):
+
+        article_dec_citations =pd.read_csv("/content/drive/My Drive/Law and Tech Lab/article_decision_citation_paragraphs.csv")
+        article_dec_citations['citations'] = article_dec_citations['citations'].apply(lambda x : ast.literal_eval(x))
+        article_dec_citations['Articles/Decision'] = article_dec_citations['Articles/Decision'].apply(lambda x : ast.literal_eval(x))
+
+        art_leg_edges = pd.DataFrame(set([cit for row in article_dec_citations['Articles/Decision'] for cit in row]), columns = ['source', 'target'])
+        para_art_edges = pd.DataFrame(set([(row['id'], cit[0]) for _,row in article_dec_citations.iterrows() for cit in row['Articles/Decision']]), columns = ['source', 'target'])
+
+        judgement_celex_numbers = self.get_case_law_judgement_celex(year=None, celex_limit=None, preliminary_ruling=True)
+        legislations_celex_numbers = self.get_celex_by_doc_type('3')
+
+        judgement_citations = self.get_citation_by_doc_type('6')
+        legislation_citations = pd.concat([self.get_citation_by_doc_type('3')])
+        cross_reference_citations = pd.concat([judgement_citations, legislation_citations])
+
+        case_case_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('6')) & (cross_reference_citations['target'].str.startswith('6'))]
+        case_case_edges = case_case_edges[(case_case_edges['source'].isin(judgement_celex_numbers)) & (case_case_edges['target'].isin(judgement_celex_numbers))]
+
+        case_leg_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('6')) & (cross_reference_citations['target'].str.startswith('3'))]
+        case_leg_edges = case_leg_edges[case_leg_edges['source'].isin(judgement_celex_numbers)]
+
+        leg_leg_edges = cross_reference_citations[(cross_reference_citations['source'].str.startswith('3')) & (cross_reference_citations['target'].str.startswith('3'))]
+
+        doc_to_para = defaultdict(list)
+
+        for para in article_dec_citations['id']:
+            doc_to_para[para.split('_')[-1]].append(para)
+
+        para_to_para = []
+        for doc, paras in tqdm(doc_to_para.items()):
+            case_cits = case_case_edges[case_case_edges['source'] == doc]
+            for cas in case_cits['target']:
+                if cas in doc_to_para.keys():
+                    cits = doc_to_para[cas]
+                    for cit in cits:
+                        for para in paras:
+                            para_to_para.append((para, cit))
+
+        para_para_edges = pd.DataFrame(para_to_para, columns = ['source', 'target'])
+
+        para_to_leg = []
+
+        for doc, paras in tqdm(doc_to_para.items()):
+            case_cits = case_leg_edges[case_leg_edges['source'] == doc]
+            for leg in case_cits['target']:
+                for para in paras:
+                    para_to_leg.append((para, leg))
+
+        para_leg_edges = pd.DataFrame(para_to_leg, columns = ['source', 'target'])
+
+        art_leg_edges.drop_duplicates(inplace=True)
+        para_art_edges.drop_duplicates(inplace=True)
+        para_para_edges.drop_duplicates(inplace=True)
+        para_leg_edges.drop_duplicates(inplace=True)
+        leg_leg_edges.drop_duplicates(inplace=True)
+
+        para_nodes = list(set(para_art_edges['source'].tolist() + 
+                       para_para_edges['source'].tolist() + 
+                       para_para_edges['target'].tolist() +
+                       para_para_edges['source'].tolist()))
+
+
+        art_nodes = list(set(art_leg_edges['source'].tolist() + 
+                            para_art_edges['target'].tolist()))
+
+        leg_nodes = list(set(para_leg_edges['target'].tolist() +
+                            leg_leg_edges['source'].tolist() + 
+                            leg_leg_edges['target'].tolist()))
+
+        G = nx.Graph()
+
+        for i in para_nodes:
+            G.add_node(i, type='paragraph')
+
+        for i in art_nodes:
+            G.add_node(i, type='article')
+
+        for i in leg_nodes:
+            G.add_node(i, type='legislation')
+
+        for _,i in art_leg_edges.iterrows():
+            G.add_edge(i['source'], i['target'])
+
+        for _,i in para_art_edges.iterrows():
+            G.add_edge(i['source'], i['target'])
+
+        for _,i in para_para_edges.iterrows():
+            G.add_edge(i['source'], i['target'])
+
+        for _,i in para_leg_edges.iterrows():
+            G.add_edge(i['source'], i['target'])
+
+        for _,i in leg_leg_edges.iterrows():
+            G.add_edge(i['source'], i['target'])
+
+        return G
+            
     def build_graph(self):
 
         judgement_celex_numbers = self.get_case_law_judgement_celex(year=None, celex_limit=None, preliminary_ruling=True)
