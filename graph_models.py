@@ -275,6 +275,7 @@ class HECO(CasePreprocessing):
 class MetaPath2Vec(CasePreprocessing):
 
     def __init__(self, 
+                 feature_dir,
                  metapaths, 
                  number_of_walks,
                  vector_size=128,
@@ -285,7 +286,8 @@ class MetaPath2Vec(CasePreprocessing):
                  epochs=10):
 
         super()
-
+        
+        self.feature_dir = feature_dir
         self.metapaths = metapaths
         self.number_of_walks = number_of_walks
         self.vector_size = vector_size
@@ -306,7 +308,7 @@ class MetaPath2Vec(CasePreprocessing):
 
     def build_graph_paragraph(self):
 
-        article_dec_citations =pd.read_csv("/content/drive/My Drive/Law and Tech Lab/article_decision_citation_paragraphs.csv")
+        article_dec_citations = pd.read_csv(self.feature_dir + "article_decision_citation_paragraphs.csv")
         article_dec_citations['citations'] = article_dec_citations['citations'].apply(lambda x : ast.literal_eval(x))
         article_dec_citations['Articles/Decision'] = article_dec_citations['Articles/Decision'].apply(lambda x : ast.literal_eval(x))
 
