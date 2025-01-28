@@ -366,7 +366,7 @@ class MetaPath2Vec(CasePreprocessing):
         para_nodes = list(set(para_art_edges['source'].tolist() + 
                        para_para_edges['source'].tolist() + 
                        para_para_edges['target'].tolist() +
-                       para_para_edges['source'].tolist()))
+                       para_leg_edges['source'].tolist()))
 
 
         art_nodes = list(set(art_leg_edges['source'].tolist() + 
